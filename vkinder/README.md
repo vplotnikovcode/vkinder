@@ -2,6 +2,7 @@
 <img src="https://media.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif" width="100"/>
 
 ## Запуск бота:
+- установить библиотеку tomllib
 - запуск main.py
 - ввести данные в config.py
 
