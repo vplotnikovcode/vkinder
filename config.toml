@@ -1,0 +1,9 @@
+[DB]
+HOST = "localhost"
+USER = "postgres"
+PASSWORD = "postgres"
+DATABASE = "vkinder"
+
+[ACCESS]
+USER_TOKEN = "YOUR_USER_TOKEN"
+GROUP_TOKEN = "YOUR_GROUP_TOKEN"
