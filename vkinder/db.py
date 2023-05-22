@@ -1,20 +1,24 @@
 import sqlite3
 
-def set_data(client_user_id, couple_id):
 
-
+def set_data(client_user_id, offset):
     con = sqlite3.connect("vk_id2.db")
     cursor = con.cursor()
-    dt=(str(client_user_id),str(couple_id))
-    cursor.execute("INSERT INTO searched_id (user_id, couple_id) VALUES (?, ?)",dt)
-
+    if cursor.execute(f'select user_id from users where user_id={client_user_id};').fetchall():
+        cursor.execute(f"UPDATE users SET offset = {offset} WHERE user_id = {client_user_id};")
+    else:
+        cursor.execute("INSERT INTO users (user_id, offset) VALUES (?, ?);", (client_user_id, offset))
     con.commit()
 
 
 def get_data(client_user_id):
-    con = sqlite3.connect("metanit.db")
+    con = sqlite3.connect("vk_id2.db")
     cursor = con.cursor()
-    cursor.execute("SELECT user_id, couple_id FROM searched_id where user_id='"+str(client_user_id)+"'")
-    lst=[]
-    for i in cursor.fetchall():
-        lst.append(i[1])
+    try:
+        cursor.execute(f"SELECT offset FROM users where user_id={client_user_id};")
+        result = cursor.fetchall()
+        return result[0][0] if result else 0
+    except:
+        cursor.execute('create table users(user_id INTEGER, offset INTEGER);')
+        con.commit()
+        return 0

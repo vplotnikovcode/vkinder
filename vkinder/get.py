@@ -1,7 +1,3 @@
-from random import randrange
-import requests
-import vk_api
-from vk_api.longpoll import VkLongPoll, VkEventType
 import datetime
 
 API_VERSION = 5.131
@@ -10,8 +6,10 @@ STATUS_SINGLE = 6
 
 def fetch_user(user_id, vk):
     user = {}
-    response = vk.method('users.get', {'user_id': user_id, 'v': API_VERSION, 'fields': 'first_name, last_name, bdate, sex, city, country'})
-    
+    response = vk.method('users.get', {
+        'user_id': user_id,
+        'v': API_VERSION,
+        'fields': 'first_name, last_name, bdate, sex, city, country'})
     for key, value in response[0].items():
         if key == 'city':
             user[key] = value['id']
@@ -19,21 +17,24 @@ def fetch_user(user_id, vk):
             user['age'] = datetime.datetime.now().year - int(value[-4:])
         else:
             user[key] = value
-            
     return user
 
 
-def find_couples(user_info, vk):
+def find_couple(user_info, vk, offset):
     response = vk.method('users.search', {
         'sort': 0,
-        'count': 100,
+        'count': 1,
+        'offset': offset,
         'city': user_info['city'],
         'sex': 3 - user_info['sex'],
         'status': STATUS_SINGLE,
         'has_photo': 1
     })
-    couples_list = [item['id'] for item in response['items'] if not item['is_closed']]
-    return couples_list
+    if response['count'] != 0:
+        return response['items'][0]['id'] if not response['items'][0]['is_closed'] else find_couple(user_info, vk,
+                                                                                                    offset+1)
+    else:
+        return None
 
 
 def top_photos(response):
@@ -44,10 +45,10 @@ def top_photos(response):
     return top_photos_list
 
 
-def get_photos_info(users, vk, index):
+def get_photos_info(user, vk):
     photos_info = {}
     response = vk.method('photos.get', {
-        'owner_id': users[index],
+        'owner_id': user,
         'album_id': 'profile',
         'extended': 1
     })
@@ -55,7 +56,7 @@ def get_photos_info(users, vk, index):
     photo_ids = [photo['id'] for photo in top_photos_list]
     photos_info[top_photos_list[0]['owner_id']] = photo_ids
 
-    user_id = users[index]
+    user_id = user
     photo_attachments = [f'photo{user_id}_{photo_id}' for photo_id in photos_info[user_id]]
     attachments_list = [','.join(photo_attachments), user_id]
 
