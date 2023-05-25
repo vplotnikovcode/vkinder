@@ -20,20 +20,19 @@ def fetch_user(user_id, vk):
     return user
 
 
-def find_couple(user_info, vk, offset):
+def find_couples(user_info, vk, offset):
     response = vk.method('users.search', {
         'sort': 0,
-        'count': 1,
+        'count': 50,
         'offset': offset,
         'city': user_info['city'],
         'sex': 3 - user_info['sex'],
         'status': STATUS_SINGLE,
         'has_photo': 1
     })
-    if response['count'] != 0:
-        return response['items'][0]['id'] if not response['items'][0]['is_closed'] else find_couple(user_info, vk,
-                                                                                                    offset+1)
-    else:
+    try:
+        return [item['id'] for item in response['items'] if not item['is_closed']]
+    except KeyError():
         return None
 
 
